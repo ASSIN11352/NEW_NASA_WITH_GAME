@@ -1,0 +1,307 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Space Journey — Abandoned, Not Forgotten</title><link rel="stylesheet" href="styles.css"><style>
+.game-wrap{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#1a0d0a;max-width:960px;margin-top:10px}
+.game-wrap:fullscreen,.game-wrap.pfs{max-width:none;width:100vw;height:100vh;border-radius:0;margin:0;background:#000}.game-wrap.pfs{position:fixed;inset:0;z-index:9999}.game-wrap:fullscreen #game,.game-wrap.pfs #game{width:100%;height:100%;aspect-ratio:auto}
+#game{cursor:grab;touch-action:none;display:block;width:100%;height:auto;aspect-ratio:16/9}
+.hud{position:absolute;left:12px;right:12px;top:12px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;pointer-events:none}
+.robot-box{display:flex;gap:10px;align-items:flex-start;max-width:68%}
+.robot{--eye:#6ce8ff;flex:none}.robot svg{width:62px;height:auto;display:block;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.bubble{background:rgba(5,8,18,.84);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.7;color:#dce7fb}
+.stats{display:grid;gap:7px;font:10px var(--mono);letter-spacing:1px;color:var(--cyan);background:rgba(5,8,18,.84);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:132px}
+.stats b{color:#fff;margin-inline-start:6px}.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),#ff9d5c)}
+.overlay{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;background:rgba(5,7,17,.8);padding:20px}
+.overlay h2{margin:0}.overlay p{max-width:540px;margin:0}
+.pad{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 34px;align-items:center;touch-action:none;user-select:none}
+.pad .button{min-width:46px}
+@media(max-width:620px){.robot-box{max-width:100%}.stats{display:none}.robot svg{width:46px}}
+</style></head><body data-page="game"><canvas id="space-canvas"></canvas><div class="space-glow"></div><header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">✦</span><span>ABANDONED<span class="brand-light">, NOT FORGOTTEN</span><small>AN OFF-WORLD HERITAGE ARCHIVE</small></span></a><button class="menu-toggle" id="menu-toggle">☰</button><nav id="main-nav"><a href="index.html" data-i18n="navHome">Home</a><a href="explorer.html" data-i18n="navExplorer">Explorer</a><a href="archive.html" data-i18n="navArchive">Archive</a><a href="lab.html" data-i18n="navLab">Mission Lab</a><a href="footprints.html" data-i18n="navFootprints">Footprints</a><a href="sources.html" data-i18n="navSources">Sources</a><a class="active" href="game.html">Game</a><a class="admin-icon-link" href="admin.html" aria-label="Admin login" title="Admin login"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.8-2.9 8-7 10-4.1-2-7-5.2-7-10V6l7-3Z"/><path d="M9 12h6M12 9v6"/></svg><span>Admin</span></a><button class="lang-toggle" id="lang-toggle">العربية</button></nav></header><main class="container page-main"><div class="eyebrow">MISSION GAME / SPACE JOURNEY</div><h1>Take the space <span class="gradient-text">journey.</span></h1><p class="page-lead">Join ROVA on a journey to the Moon, Mars and deep space. Visit the robots NASA left behind and learn their stories.</p>
+<div class="game-wrap"><canvas id="game"></canvas><div class="hud"><div class="robot-box"><div class="robot" id="robot"><svg viewBox="0 0 80 100" aria-hidden="true"><line x1="40" y1="6" x2="40" y2="17" stroke="#9fb0cc" stroke-width="2"/><circle cx="40" cy="5" r="3" style="fill:var(--eye)"/><rect x="17" y="16" width="46" height="27" rx="12" fill="#cfd9ea" stroke="#7e91b0"/><rect x="23" y="22" width="34" height="15" rx="7" fill="#0a1222"/><circle cx="33" cy="29.5" r="3.4" style="fill:var(--eye)"/><circle cx="47" cy="29.5" r="3.4" style="fill:var(--eye)"/><circle cx="40" cy="71" r="27" fill="#dfe7f5" stroke="#7e91b0"/><ellipse cx="40" cy="71" rx="27" ry="8" fill="none" stroke="#2bb7c9" stroke-width="3"/><circle cx="40" cy="71" r="9" fill="#2bb7c9" stroke="#0f6d7a"/><path d="M24 55q16-9 32 0M26 87q14 8 28 0" fill="none" stroke="#9fb0cc" stroke-width="2"/></svg></div><div class="bubble"><b>ROVA</b><br><span id="bubble"></span></div></div><div class="stats"><div><span>TIME</span><b id="t-time">55</b></div><div><span>DAY</span><b id="t-day">1/3</b></div><div><span>SHIP</span><b id="t-ship">0m</b></div><div><span>COINS</span><b id="t-c">0</b></div><div><span>SAMPLES</span><b id="t-s">0/7</b></div><div><span>RELICS</span><b id="t-r">0/5</b></div><div><span>BATTERY</span><div class="bar"><i id="t-b" style="width:100%"></i></div></div><div><span id="t-hz">STORM</span><div class="bar"><i id="t-bar"></i></div></div></div></div>
+<button class="button ghost small" id="fs" title="Fullscreen (F)" style="position:absolute;right:12px;bottom:12px;z-index:3">⛶</button><button class="button ghost small" id="gs-btn" title="Settings (O)" aria-label="Settings" style="position:absolute;right:56px;bottom:12px;z-index:3">⚙</button>
+<div class="overlay" id="ov" style="z-index:4"><h2 id="ov-t">Mars Rescue Scan</h2><p class="muted" id="ov-p"></p><p class="muted" id="ov-r" style="font-size:13px;color:#ff9be4" hidden></p><p class="muted" id="ov-h" style="font-size:12px">Move with the arrow keys or WASD. Drag the mouse to look around. Stop near an object and hold SPACE (or SCAN) to scan it. Avoid hazards and recharge on the green pads. You land from the ship. Return to it to recharge, and stay inside when night or the storm comes.</p><div class="pad" style="margin:6px 0 0"><button class="button primary" id="go">Start mission</button><button class="button primary" id="next" hidden>Next chapter →</button><a class="button ghost" id="ov-a" href="archive.html" hidden>Open the archive →</a></div><div class="pad" id="lvs" style="margin:0"></div></div></div>
+<div class="pad" id="pad"><button class="button ghost small" data-k="l">◀</button><button class="button ghost small" data-k="u">▲</button><button class="button ghost small" data-k="d">▼</button><button class="button ghost small" data-k="r">▶</button><button class="button primary small" data-k="s">SCAN</button><button class="button ghost small" id="hint">Hint</button><button class="button ghost small" id="fs2"><span>⛶</span> Fullscreen</button><button class="button ghost small" id="gs2"><span>⚙</span> Settings</button></div>
+<div class="fact-grid" id="found"></div>
+<section id="salvage-wrap" style="margin-top:46px"><div class="eyebrow">SALVAGE CHALLENGE</div><h2>Relics NASA left behind</h2><p class="muted" style="max-width:640px">Hunt for the debris and old tools NASA left in space. Drive over a glowing pink beam to collect a relic. Each one gives you +4 seconds. Your finds are saved in this browser.</p><p class="muted" id="sv-count" style="font:12px var(--mono);color:#ff9be4"></p><div class="bar" style="max-width:420px;margin:0 0 20px"><i id="sv-bar" style="background:linear-gradient(90deg,#ff7ad9,#ffcf6b)"></i></div><div class="fact-grid" id="salvage"></div></section><p class="muted" style="max-width:640px;margin-top:6px">Want to look up any spacecraft? NASA's NSSDCA catalog lists every mission, instrument and its final status.</p><a class="text-link" href="https://nssdc.gsfc.nasa.gov/" target="_blank" rel="noopener">Open NSSDCA →</a></main><footer class="site-footer"><span>© 2026 ABANDONED, NOT FORGOTTEN</span><a href="admin.html">Admin access</a></footer><script src="data.js"></script><script src="app.js"></script><script src="i18n.js"></script><script src="sound.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="extras.js"></script><script src="shop.js"></script><script src="ai.js"></script>
+<script>
+(()=>{
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let stories=null;try{stories=JSON.parse(localStorage.getItem("anf_stories"))}catch(e){}
+if(!Array.isArray(stories))stories=window.DEFAULT_STORIES||[];
+const W=2400,H=1400,VW=960,VH=540,SPEED=150,RANGE=90,NS=7,cv=$("#game");
+const LV=[
+{n:"Chapter 1: The Moon",hz:"NIGHT",time:90,dev:3,th:"moon",story:"The Moon is our closest neighbor. Astronauts visited it and left some hardware behind. Let's find it before night falls.",t:[{id:"apollo-footprints",p:[560,380],kid:"Astronauts landed here in a spaceship called Eagle. When they flew home, they left the bottom half behind like a launch pad."},{id:"lunar-rover",p:[1900,420],kid:"Astronauts drove this electric moon buggy on the Moon. Three of them were left there forever."},{id:"laser-reflector",p:[1100,1100],kid:"This mirror bounces laser beams back to Earth. Scientists use it to measure how far away the Moon is."},{id:"surveyor-3",p:[1950,1150],kid:"This robot landed before astronauts came. Later, the Apollo 12 astronauts walked over and took some parts home.",title:"Surveyor 3: Visited by Apollo 12"},{id:"alsep",p:[1600,250],kid:"Astronauts set up these science stations before leaving. They sent news about moonquakes back to Earth until 1977.",title:"ALSEP: The Moon Science Station"}]},
+{n:"Chapter 2: Mars Rovers",hz:"STORM",time:85,dev:3,th:"mars",story:"Mars is red and dusty. Robot rovers drove here to look for clues about water. Find them before the dust storm!",t:[{id:"sojourner",p:[560,380],kid:"Sojourner was the first rover on Mars, about the size of a microwave oven. It arrived in 1997 and still rests there."},{id:"spirit",p:[1950,560],kid:"Spirit was a robot geologist. It drove on Mars for years and is now a quiet monument."},{id:"opportunity",p:[400,1220],kid:"Opportunity was planned for only 90 days, but it worked for almost fifteen years until a giant dust storm.",title:"Opportunity: Built for 90 Days"},{id:"ingenuity",p:[1180,1120],kid:"Ingenuity was the first helicopter to fly on another planet. Its blades were damaged, so now it stays on the ground."}]},
+{n:"Chapter 3: Mars Landers",hz:"STORM",time:70,dev:4,th:"mars",story:"These landers do not move. They have stayed in one place since the day they landed. Visit them before the storm arrives.",t:[{id:"viking-1",p:[700,300],kid:"Two Viking landers touched down on Mars in 1976. They checked the soil and weather for years.",title:"Viking 1 & 2: The Twin Landers"},{id:"phoenix",p:[1850,700],kid:"Phoenix landed near the north pole and dug in the ground. It found ice made of water!",title:"Phoenix: Digging for Ice"},{id:"insight",p:[1000,1180],kid:"InSight listened to the inside of Mars. It heard marsquakes, which are earthquakes on Mars.",title:"InSight: The Lander That Listened"}]},
+{n:"Chapter 4: Deep Space",hz:"NIGHT",time:90,dev:4,th:"ast",story:"Some spacecraft are too far to drive to. ROVA shows them as glowing holograms. Scan them all, and visit NEAR on the asteroid Eros!",t:[{id:"near",p:[560,380],kid:"NEAR flew around a space rock called Eros. At the end, it landed on it, even though it was not built to land!",title:"NEAR Shoemaker: Landing on an Asteroid"},{id:"dawn",p:[1900,420],kid:"Dawn visited two big space rocks, Vesta and Ceres. It ran out of fuel and will circle Ceres for many years.",title:"Dawn: Visiting Two Giants",holo:1},{id:"pioneer",p:[1100,1100],kid:"These two probes visited Jupiter and Saturn in the 1970s. Now they drift quietly far from the Sun.",title:"Pioneer 10 & 11: Explorers of the Giants",holo:1},{id:"kepler",p:[1950,1150],kid:"Kepler looked for planets around other stars and found thousands. Now it floats in space with no fuel left.",title:"Kepler: The Planet Hunter",holo:1}]}];
+const TH={mars:{h:.045,s:.42,l:.2,f0:0xc58a62,f1:0xa65f3a,s0:[0xe0a577,0x7d5a58],s1:[0xa8603a,0x9a5a3c],sun:1.15,hm:[0xffd9b8,0x5b2e1c,.75],rock:0x4a2a1c,fd:.0011,dust:1},
+ moon:{h:.6,s:.03,l:.3,f0:0x0d0d12,f1:0x000000,s0:[0x1b1b22,0x000000],s1:[0x000000,0x000000],sun:1.7,hm:[0x9aa4b8,0x2a2a30,.4],rock:0x58585f,fd:.0003,dust:0},
+ ast:{h:.08,s:.1,l:.24,f0:0x07070a,f1:0x000000,s0:[0x101015,0x000000],s1:[0x000000,0x000000],sun:1.8,hm:[0x8a93a8,0x222228,.3],rock:0x4a4846,fd:.00025,dust:0}};
+const MOOD={ok:"#6ce8ff",warn:"#ffa45c",good:"#5df0b0",bad:"#ff7189"};
+const HINTS=["Explore the map. The old hardware is far apart.","Follow the arrow at the edge of the screen to the nearest target.","Look for the big pulsing ring. That is the nearest target!"];
+let relics=[],paused=false,lastBatt=100,chgCd=0,lv=0,targets=[],rv,time,TOTAL=55,st="ready",scan=0,hint=0,ping=0,said=0,storm=0,got=0,batt=100,hitCd=0,lowSaid=0,stopSaid=0,samples=[],pads=[],devs=[],near=null;
+const k={u:0,d:0,l:0,r:0,s:0,q:0,e:0};
+const SHIP={x:260,y:170},U=window.SHOP?SHOP.U:{spd:0,eff:0,scn:0,mag:0,chg:0,rng:0,day:0},lg=(a,b)=>window.ROVA&&ROVA.log(a,b);const zS=SHIP.y+11,zH=SHIP.y+19.5,zE=SHIP.y+52,zF=SHIP.y+66,LT=6.5;let MAXD=3,day=1,sheltered=0,landT=0,dockSaid=0,cns=[];if(!window.SHOP)window.SHOP={coins:0,add(){}};
+const rp=(m)=>m+Math.random()*(W-2*m),rq=(m)=>m+Math.random()*(H-2*m);
+let th=TH.mars,obst=[],yaw=0,pit=.62,dist=118,blockCd=0,warnCd=0;
+const MT=[[1250,520,170,120],[1500,1000,150,95],[800,800,150,90],[2200,850,130,100],[350,1000,140,80]];
+const ALLP=[[1600,250],[400,1220],[220,220],[560,380],[1950,560],[1180,1120],[1900,420],[1100,1100],[1950,1150],[700,300],[1850,700],[1000,1180]];
+let _s=12345;const rs=()=>(_s=_s*16807%2147483647)/2147483647;
+const CR=[];for(let i=0;i<80&&CR.length<14;i++){const x=150+rs()*(W-300),z=150+rs()*(H-300),r=60+rs()*80;if(ALLP.every(p=>Math.hypot(p[0]-x,p[1]-z)>r+140))CR.push([x,z,r,10+rs()*14])}
+function hgt(x,z){let h=12*Math.sin(x*.004+1)*Math.cos(z*.005)+6*Math.sin(x*.011+z*.007)+3*Math.sin(x*.03)*Math.sin(z*.027)+1.2*Math.sin(x*.09+z*.07);
+ for(const m of MT){const d=Math.hypot(x-m[0],z-m[1])/m[2];if(d<2.4)h+=(th.dust?1:.7)*m[3]*Math.exp(-d*d*d)*(1+.14*Math.sin(x*.05)*Math.cos(z*.043))}
+ if(!th.dust)for(const c of CR){const d=Math.hypot(x-c[0],z-c[1])/c[2];if(d<1.6)h+=-c[3]*Math.max(0,1-d*d)+c[3]*.35*Math.exp(-Math.pow((d-1)/.18,2))}
+ const e=Math.max(0,150-x,x-(W-150),150-z,z-(H-150));return h+Math.min(420,e*.42)*(.65+.35*Math.sin(x*.008+z*.011))*(th.dust?1:.8)}
+const slopeAt=(x,z)=>{const gx=(hgt(x+3,z)-hgt(x-3,z))/6,gz=(hgt(x,z+3)-hgt(x,z-3))/6;return[gx,gz,Math.hypot(gx,gz)]};
+const blocked=(x,z)=>{if(slopeAt(x,z)[2]>.6)return 1;if(Math.hypot(SHIP.x-x,SHIP.y-6-z)<32)return 2;for(const o of obst)if(Math.hypot(o.x-x,o.z-z)<o.r+11)return 2;return 0};
+const free=(m,d0=0)=>{for(let i=0;i<60;i++){const x=rp(m),y=rq(m);if(!blocked(x,y)&&slopeAt(x,y)[2]<.3&&Math.hypot(x-220,y-220)>d0)return{x,y}}return{x:rp(m),y:rq(m)}};
+const say=(t,m="ok")=>{$("#bubble").textContent=t;$("#robot").style.setProperty("--eye",MOOD[m])};
+const cards=()=>{$("#found").innerHTML=targets.map((t,i)=>`<article class="fact-card"><span>0${i+1}</span>`+(t.done?`<h3>${esc(t.s.title)}</h3><p>${esc(t.s.summary)}</p>`+(t.s.linked?`<a class="text-link" href="story.html?id=${encodeURIComponent(t.s.id)}">Open archive record →</a>`:""):`<h3>Locked</h3><p>Find and scan this object.</p>`)+`</article>`).join("")};
+const hud=()=>{$("#t-time").textContent=Math.max(0,Math.ceil(time));$("#t-s").textContent=got+"/"+NS;$("#t-bar").style.width=Math.round(storm*100)+"%";$("#t-b").style.width=Math.round(batt)+"%";$("#t-r").textContent=GX.chOwned(lv)+"/"+GX.chTotal(lv);$("#t-day").textContent=day+"/"+MAXD;$("#t-ship").textContent=Math.round(Math.hypot(SHIP.x-rv.x,SHIP.y-rv.y)/10)+"m";$("#t-c").textContent=SHOP.coins};
+
+const rcards=()=>{const R=GX.RELICS;$("#sv-count").textContent="Relics found: "+GX.count()+" / "+R.length;$("#sv-bar").style.width=Math.round(GX.count()/R.length*100)+"%";
+ $("#salvage").innerHTML=R.map(r=>GX.owns(r.id)?`<article class="fact-card" style="border-color:rgba(255,122,217,.4)"><span>${esc(LV[r.c].n)}</span><h3>${esc(r.n)}</h3><p>${esc(r.f)}</p></article>`:`<article class="fact-card" style="opacity:.55"><span>${esc(LV[r.c].n)}</span><h3>Hidden relic</h3><p>Not found yet.</p></article>`).join("")};
+function reset(){const L=LV[lv];if(window.world3D)world3D();TOTAL=L.time;rv={x:SHIP.x,y:zS,vx:0,vy:0,a:Math.PI/2};time=TOTAL;scan=0;hint=0;ping=0;said=0;storm=0;got=0;batt=100;hitCd=0;lowSaid=0;stopSaid=0;blockCd=0;warnCd=0;near=null;targets.forEach(t=>t.done=false);
+ samples=Array.from({length:NS},()=>({...free(200),on:true}));pads=Array.from({length:3},()=>free(250));cns=Array.from({length:10},()=>({...free(150),on:true}));
+ relics=[];GX.RELICS.filter(r=>r.c===lv&&!GX.owns(r.id)).forEach(r=>{let p=null;for(let i=0;i<80&&!p;i++){const c=free(160,380);if(relics.every(o=>Math.hypot(o.x-c.x,o.y-c.y)>220)&&targets.every(t=>Math.hypot(t.x-c.x,t.y-c.y)>140))p=c}p=p||free(160,380);relics.push({...r,x:p.x,y:p.y,on:true})});
+ lastBatt=100;chgCd=0;rcards();
+ devs=Array.from({length:L.dev},()=>({...free(300,500),a:Math.random()*6.28,v:45+Math.random()*30}));
+ $("#t-hz").textContent=L.hz;cards();hud();if(window.setup3D)setup3D()}
+function loadLevel(i){lv=i;th=TH[LV[i].th];targets=LV[i].t.map(d=>{const s=stories.find(x=>x.id===d.id);return{s:s?{...s,summary:d.kid,linked:1}:{id:d.id,title:d.title,summary:d.kid},x:d.p[0],y:d.p[1],holo:!!d.holo,done:false}});reset()}
+function over(win){st=win?"win":"lose";sheltered=0;lg(win?"win":"lose");if(win)SHOP.add(50);const last=lv===LV.length-1,nt=!th.dust;$("#ov-t").textContent=win?(last?"Journey complete!":"Mission complete!"):(nt?"Night has fallen!":"The storm hit!");$("#ov-p").textContent=win?(last?"You visited every place and learned their stories. You are a real space explorer!":"All records are saved. Read each story below, then explore the archive."):(nt?"The lunar night came before you scanned everything. Try again!":"The dust buried the hardware before you scanned everything. Try again!");GX.audio[win?"win":"lose"]();GX.audio.engine(0);GX.audio.wind(0);const ro=$("#ov-r");ro.textContent=GX.count()>=GX.RELICS.length?"Salvage Challenge complete! You found every relic NASA left in space.":"Relics in this chapter: "+GX.chOwned(lv)+"/"+GX.chTotal(lv);ro.hidden=false;$("#ov-h").hidden=true;$("#go").hidden=false;$("#go").textContent="Play again";$("#next").hidden=!(win&&!last);$("#ov-a").hidden=!win;$("#ov").hidden=false;say(win?"We did it! Every record is safe.":"Oh no! The dust got us. Let's try again.",win?"good":"bad")}
+function shelter(){st="night";sheltered=1;storm=1;rv.vx=rv.vy=0;rv.x=SHIP.x;rv.y=zS;rv.a=Math.PI/2;GX.audio.engine(0);GX.audio.wind(0);lg("shelter");
+$("#ov-t").textContent="Safe inside the ship";$("#ov-p").textContent="Time ran out outside, but you were safe in the ship. Your scans, samples and relics are saved. Continue in the morning.";
+$("#ov-r").hidden=true;$("#ov-h").hidden=true;$("#next").hidden=true;$("#ov-a").hidden=true;$("#go").hidden=false;$("#go").textContent="Continue in the morning";$("#ov").hidden=false;say("We are safe inside. See you in the morning!","good")}
+function morning(){day++;sheltered=0;time=TOTAL;storm=0;batt=100;scan=0;said=0;lowSaid=0;hitCd=0;hint=0;near=null;rv={x:SHIP.x,y:zS,vx:0,vy:0,a:Math.PI/2};devs.forEach(d=>Object.assign(d,free(300,500)));lg("morning");lg("land");landT=LT;st="land";$("#ov").hidden=true;say("Good morning! A new day. Battery full. Let's finish the scans.","good");hud()}
+window.ROVAstate=()=>({ch:LV[lv].n,hz:LV[lv].hz,day,maxd:MAXD,time:Math.ceil(time||0),batt:Math.round(batt),got,NS,st,ship:rv?Math.round(Math.hypot(SHIP.x-rv.x,SHIP.y-rv.y)):0,tg:targets.map(t=>({id:t.s.id,title:t.s.title,kid:t.s.summary,done:t.done}))});
+const nearest=()=>{let b=null,d=1e9;targets.forEach(t=>{if(t.done)return;const e=Math.hypot(t.x-rv.x,t.y-rv.y);if(e<d){d=e;b=t}});return b?{t:b,d}:null};
+function step(dt){
+ const ax=k.r-k.l,ay=k.d-k.u,len=Math.hypot(ax,ay)||1;yaw+=(k.e-k.q)*1.8*dt;const cs=Math.cos(yaw),sn=Math.sin(yaw);
+ const dxw=(ax*cs+ay*sn)/len,dzw=(-ax*sn+ay*cs)/len,[gx,gz]=slopeAt(rv.x,rv.y),up=Math.max(0,gx*dxw+gz*dzw);
+ const sp=SPEED*(1+.1*U.spd)*(storm>.6?.75:1)*(batt<=0?.25:1)*(1-Math.min(.5,up*.9)),f=Math.min(1,dt*6);
+ rv.vx+=(dxw*sp-rv.vx)*f;rv.vy+=(dzw*sp-rv.vy)*f;
+ let nx=Math.min(W-20,Math.max(20,rv.x+rv.vx*dt)),ny=Math.min(H-20,Math.max(20,rv.y+rv.vy*dt));
+ if(blocked(nx,ny)){if(!blocked(nx,rv.y)){ny=rv.y;rv.vy=0}else if(!blocked(rv.x,ny)){nx=rv.x;rv.vx=0}else{nx=rv.x;ny=rv.y;rv.vx=rv.vy=0}if(blockCd<=0&&(ax||ay)){blockCd=4;say("Blocked! Find a way around.","warn");GX.audio.block()}}
+ rv.x=nx;rv.y=ny;const mv=Math.hypot(rv.vx,rv.vy);if(mv>8)rv.a=Math.atan2(rv.vy,rv.vx);GX.audio.engine(Math.min(1,mv/SPEED));GX.audio.wind(th.dust?storm:storm*.15);GX.audio.intensity(storm);
+ time-=dt;storm=Math.min(1,1-time/TOTAL);ping=Math.max(0,ping-dt);hitCd=Math.max(0,hitCd-dt);blockCd=Math.max(0,blockCd-dt);warnCd=Math.max(0,warnCd-dt);
+ if(storm>.5&&said<1){said=1;say(th.dust?"The storm is coming. Finish up and head back to the ship!":"Night is coming. Finish up and head back to the ship!","warn");lg("warn")}
+ if(storm>.8&&said<2){said=2;say("Almost here! Get back to the ship now!","warn")}
+ batt=Math.max(0,batt-(dt*((mv>20?2.4:.6)+up*mv/SPEED*5)+(near&&k.s?dt*2:0))*(1-.12*U.eff));
+ pads.forEach(p=>{if(Math.hypot(p.x-rv.x,p.y-rv.y)<42&&batt<100){batt=Math.min(100,batt+dt*30);if(batt>=100)say("Battery recharged!","good");if(chgCd<=0){chgCd=.5;GX.audio.charge()}}});chgCd-=dt;
+ const atShip=Math.hypot(SHIP.x-rv.x,SHIP.y-rv.y)<80+15*U.rng;if(atShip&&batt<100){batt=Math.min(100,batt+dt*45*(1+.5*U.chg));if(!dockSaid){dockSaid=1;say("Recharging at the ship.","good");lg("dock")}if(chgCd<=0){chgCd=.5;GX.audio.charge()}}if(!atShip)dockSaid=0;
+ if(batt<20&&!lowSaid){lowSaid=1;say("Battery low! Return to the ship or a green pad.","warn");lg("low");GX.audio.low()}if(batt>60)lowSaid=0;
+ devs.forEach(d=>{d.a+=(Math.random()-.5)*dt*1.4;const px=d.x+Math.cos(d.a)*d.v*dt,py=d.y+Math.sin(d.a)*d.v*dt;
+  if(px<60||px>W-60||py<60||py>H-60||blocked(px,py))d.a+=Math.PI*(.6+Math.random()*.8);else{d.x=px;d.y=py}
+  const e=Math.hypot(d.x-rv.x,d.y-rv.y);
+  if(e<26&&hitCd<=0){hitCd=1;batt=Math.max(0,batt-20);rv.vx=(rv.x-d.x)/(e||1)*260;rv.vy=(rv.y-d.y)/(e||1)*260;say("Watch out! A hazard drained our battery!","bad");lg("hit");GX.audio.hit()}
+  else if(e<170&&warnCd<=0&&hitCd<=0){warnCd=6;say("A hazard is close! Steer away.","warn")}});
+ samples.forEach(s=>{if(s.on&&Math.hypot(s.x-rv.x,s.y-rv.y)<30){s.on=false;got++;SHOP.add(3);say("Sample collected!","good");GX.audio.sample()}});
+ cns.forEach(c=>{if(c.on&&Math.hypot(c.x-rv.x,c.y-rv.y)<30+12*U.mag){c.on=false;SHOP.add(5);GX.audio.relic()}});
+ relics.forEach(r=>{if(r.on&&Math.hypot(r.x-rv.x,r.y-rv.y)<34){r.on=false;GX.own(r.id);lg("relic",r.n);SHOP.add(15);time=Math.min(TOTAL,time+4);GX.audio.relic();rcards();say(GX.count()>=GX.RELICS.length?"Salvage Challenge complete! You found every relic NASA left in space.":"Relic found: "+r.n+"! "+r.f,"good")}});
+ const n=nearest(),inr=n&&n.d<RANGE?n.t:null;
+ if(inr&&inr!==near){say("Object detected! Hold SCAN and stay close.","warn");GX.audio.detect()}near=inr;
+ if(inr&&k.s&&mv>=40&&!stopSaid){stopSaid=1;say("Stop the rover to scan.","warn")}if(mv<40)stopSaid=0;
+ if(inr&&k.s&&mv<40){scan+=dt/(2*(1-.15*U.scn));GX.audio.scanTick(scan);if(scan>=1){inr.done=true;scan=0;near=null;cards();say("Scan complete! Record saved to the archive.","good");lg("scan",inr.s.title);SHOP.add(25);GX.audio.scanDone();if(targets.every(t=>t.done))over(true)}}else scan=Math.max(0,scan-dt*2);
+ if(st==="play"&&time<=0){time=0;atShip&&day<MAXD?shelter():over(false)}hud()}
+let draw=()=>{};
+if(!window.THREE){}
+else{
+const T=THREE,TW=5200,TH_=4000,CX=W/2,CZ=H/2;
+const R3=new T.WebGLRenderer({canvas:cv,antialias:true});R3.setPixelRatio(Math.min(devicePixelRatio||1,2));R3.setSize(VW,VH,false);R3.shadowMap.enabled=true;R3.shadowMap.type=T.PCFSoftShadowMap;R3.outputEncoding=T.sRGBEncoding;R3.toneMapping=T.ACESFilmicToneMapping;R3.toneMappingExposure=1.18;
+const sc=new T.Scene(),fc0=new T.Color(),fc1=new T.Color();sc.fog=new T.FogExp2(0xc58a62,.0011);
+const cam3=new T.PerspectiveCamera(50,VW/VH,1,6000);
+function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;R3.setSize(w,h,false);cam3.aspect=w/h;cam3.updateProjectionMatrix()}window.gameResize=resize;addEventListener("resize",resize);document.addEventListener("fullscreenchange",resize);setTimeout(resize,0);
+const sk0=[new T.Color(),new T.Color()],sk1=[new T.Color(),new T.Color()],skyU={bot:{value:new T.Color()},top:{value:new T.Color()}};
+const sky=new T.Mesh(new T.SphereGeometry(4500,24,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:skyU,vertexShader:"varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",fragmentShader:"uniform vec3 top;uniform vec3 bot;varying float h;void main(){gl_FragColor=vec4(mix(bot,top,clamp(h*1.6,0.,1.)),1.);}"}));sc.add(sky);
+const gc=document.createElement("canvas");gc.width=gc.height=128;const gx=gc.getContext("2d"),gr=gx.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,"rgba(255,244,220,1)");gr.addColorStop(.15,"rgba(255,220,170,.55)");gr.addColorStop(1,"rgba(255,200,150,0)");gx.fillStyle=gr;gx.fillRect(0,0,128,128);
+const glare=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(gc),blending:T.AdditiveBlending,depthWrite:false,fog:false,transparent:true}));glare.scale.set(1100,1100,1);sc.add(glare);
+const sa=new Float32Array(900*3);for(let i=0;i<900;i++){const a=Math.random()*6.283,b=Math.acos(Math.random()*.95+.02);sa[i*3]=4000*Math.sin(b)*Math.cos(a);sa[i*3+1]=4000*Math.cos(b);sa[i*3+2]=4000*Math.sin(b)*Math.sin(a)}
+const sg=new T.BufferGeometry();sg.setAttribute("position",new T.BufferAttribute(sa,3));const stars=new T.Points(sg,new T.PointsMaterial({color:0xffffff,size:2,sizeAttenuation:false,fog:false}));stars.frustumCulled=false;sc.add(stars);
+const tg=new T.PlaneGeometry(TW,TH_,260,200);tg.rotateX(-Math.PI/2);tg.translate(CX,0,CZ);
+const pp=tg.attributes.position,col=new Float32Array(pp.count*3),c=new T.Color();
+const hs=new Float32Array(pp.count);for(let i=0;i<pp.count;i++){const x=pp.getX(i),z=pp.getZ(i);hs[i]=hgt(x,z);pp.setY(i,hs[i])}
+tg.setAttribute("color",new T.BufferAttribute(col,3));tg.computeVertexNormals();
+const nc=document.createElement("canvas");nc.width=nc.height=256;const nx_=nc.getContext("2d");nx_.fillStyle="#d0d0d0";nx_.fillRect(0,0,256,256);
+for(let i=0;i<9000;i++){const v=150+Math.random()*90|0;nx_.fillStyle=`rgba(${v},${v},${v},.4)`;nx_.beginPath();nx_.arc(Math.random()*256,Math.random()*256,Math.random()*3+.5,0,6.283);nx_.fill()}
+const dtex=new T.CanvasTexture(nc);dtex.wrapS=dtex.wrapT=T.RepeatWrapping;dtex.repeat.set(260,200);dtex.anisotropy=8;
+const ground=new T.Mesh(tg,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0,map:dtex,bumpMap:dtex,bumpScale:1.6}));ground.receiveShadow=true;sc.add(ground);
+const hemi=new T.HemisphereLight(0xffd9b8,0x5b2e1c,.75);sc.add(hemi);
+const sun=new T.DirectionalLight(0xfff0dd,1.15);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);const sh=sun.shadow.camera;sh.left=-170;sh.right=170;sh.top=170;sh.bottom=-170;sh.near=1;sh.far=900;sun.shadow.bias=-.0005;sun.shadow.normalBias=.6;sc.add(sun,sun.target);
+const NR=420,rmat0=new T.MeshStandardMaterial({color:0x4a2a1c,roughness:1,flatShading:true}),rm=new T.InstancedMesh(new T.DodecahedronGeometry(1,0),rmat0,NR),o=new T.Object3D();rm.castShadow=rm.receiveShadow=true;sc.add(rm);
+const M=(cl,m=.3,r=.6)=>new T.MeshStandardMaterial({color:cl,metalness:m,roughness:r});
+const add=(ge,mt,x,y,z,p)=>{const s=new T.Mesh(ge,mt);s.position.set(x,y,z);s.castShadow=true;s.receiveShadow=true;p.add(s);return s};
+const gold=M(0xcaa24a,.7,.35),sil=M(0xc9ccd4,.7,.4),dk=M(0x1d2433,.3,.6),sol=M(0x15284d,.6,.35);
+function rover(tint,panel){const g=new T.Group(),body=M(tint,.35,.55),teal=M(0x2bb7c9,.2,.5),wheels=[];
+ add(new T.BoxGeometry(3.6,1,2.2),body,0,1.6,0,g);add(new T.BoxGeometry(3.7,.25,2.3),teal,0,1.2,0,g);add(new T.BoxGeometry(panel?4.6:3,.12,panel?3.4:1.9),sol,0,2.2,0,g);
+ add(new T.CylinderGeometry(.1,.1,1.8,8),body,1.2,3,0,g);add(new T.BoxGeometry(.7,.45,1.1),dk,1.2,4,0,g);
+ [-.35,.35].forEach(z=>add(new T.SphereGeometry(.14,8,8),M(0x5ec8ff,.8,.2),1.55,4,z,g));
+ [-1.45,1.45].forEach(z=>{add(new T.BoxGeometry(3.2,.18,.18),dk,0,1,z,g);[-1.4,0,1.4].forEach(x=>{const w=add(new T.CylinderGeometry(.55,.55,.5,16).rotateX(Math.PI/2),dk,x,.55,z*1.05,g);wheels.push(w);add(new T.CylinderGeometry(.25,.25,.52,10).rotateX(Math.PI/2),M(0xaab4c6,.7,.4),x,.55,z*1.05,g)})});
+ g.userData.wheels=wheels;return g}
+function legs(g,n,r,h){for(let i=0;i<n;i++){const a=i/n*6.283,ca=Math.cos(a),sa_=Math.sin(a),l=add(new T.CylinderGeometry(.08,.08,h*1.3,6),sil,ca*r,h/2,sa_*r,g);l.rotation.set(-sa_*.5,0,ca*.5);add(new T.CylinderGeometry(.35,.35,.1,10),dk,ca*r*1.25,.05,sa_*r*1.25,g)}}
+const MODELS={
+ sojourner:()=>{const g=rover(0xe9e4d8,false);add(new T.ConeGeometry(4.2,1.4,3),sil,-6,.7,-4,g);g.scale.setScalar(5);return g},
+ spirit:()=>{const g=rover(0xb58f78,true);add(new T.CylinderGeometry(.9,.9,.1,20),M(0xd8d8d8,.6,.4),-1.2,2.7,0,g).rotation.x=.5;g.scale.setScalar(4.5);return g},
+ ingenuity:()=>{const g=new T.Group();add(new T.BoxGeometry(1,1.2,1),gold,0,1.9,0,g);add(new T.BoxGeometry(1.3,.06,1.3),sol,0,3.7,0,g);
+  [[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([x,z])=>{add(new T.CylinderGeometry(.05,.05,2,6),dk,x,.9,z,g).rotation.set(z*.3,0,-x*.3)});
+  add(new T.BoxGeometry(5.2,.06,.35),dk,0,3.1,0,g);add(new T.BoxGeometry(5.2,.06,.35),dk,0,3.35,0,g).rotation.y=1.2;g.scale.setScalar(4);return g},
+ "apollo-footprints":()=>{const g=new T.Group();add(new T.CylinderGeometry(3,3.4,1.8,8),gold,0,2.6,0,g);legs(g,4,2.6,2.2);add(new T.CylinderGeometry(.05,.05,5,6),sil,6,2.5,0,g);add(new T.BoxGeometry(2.6,1.5,.05),M(0xf2f2f2,.1,.8),7.3,4.6,0,g);
+  [0,1,2].forEach(i=>add(new T.BoxGeometry(2.6,.16,.06),M(0xb22234,.1,.8),7.3,5.1-i*.5,0,g));add(new T.BoxGeometry(1,.8,.07),M(0x3c3b6e,.1,.8),6.5,4.95,0,g);g.scale.setScalar(2.2);return g},
+ "lunar-rover":()=>{const g=new T.Group();add(new T.BoxGeometry(4,.3,2.2),sil,0,1.4,0,g);[[-1.6,-1.5],[1.6,-1.5],[-1.6,1.5],[1.6,1.5]].forEach(([x,z])=>add(new T.CylinderGeometry(.9,.9,.5,16).rotateX(Math.PI/2),M(0x6a6f7a,.3,.9),x,.9,z,g));
+  [-.5,.7].forEach(x=>add(new T.BoxGeometry(.9,1.2,.2),M(0xe2e2e2,.1,.8),x,2.1,0,g));add(new T.CylinderGeometry(.06,.06,2.4,6),sil,1.8,2.6,0,g);add(new T.ConeGeometry(.9,.5,16),sil,1.8,3.9,0,g);g.scale.setScalar(3.6);return g},
+ "laser-reflector":()=>{const g=new T.Group();add(new T.BoxGeometry(4.2,.15,3),sil,0,1,0,g);legs(g,3,1.5,1);for(let i=0;i<5;i++)for(let j=0;j<3;j++)add(new T.CylinderGeometry(.3,.3,.3,12),M(0x9fd6ff,.9,.1),-1.6+i*.8,1.25,-.9+j*.9,g);g.scale.setScalar(3.6);return g},
+ "surveyor-3":()=>{const g=new T.Group();add(new T.CylinderGeometry(.7,.7,1.6,12),sil,0,3.2,0,g);legs(g,3,1.8,2.4);add(new T.CylinderGeometry(.07,.07,2.4,6),sil,0,5.2,0,g);add(new T.BoxGeometry(1.8,.08,1.8),sol,0,6.5,0,g);add(new T.BoxGeometry(.5,.4,.5),dk,.6,4.2,0,g);g.scale.setScalar(3);return g},
+ "viking-1":()=>{const g=new T.Group();add(new T.BoxGeometry(3,1.1,2.4),gold,0,1.7,0,g);legs(g,3,2.2,1.3);add(new T.CylinderGeometry(.07,.07,2,6),sil,-.8,3,0,g);add(new T.CylinderGeometry(.9,.9,.08,18),sil,-.8,4.1,0,g).rotation.x=.4;add(new T.BoxGeometry(2.4,.1,.1),dk,1.8,1.9,.8,g);g.scale.setScalar(3.6);return g},
+ phoenix:()=>{const g=new T.Group();add(new T.BoxGeometry(2.6,.5,1.6),sil,0,1.7,0,g);legs(g,3,2.2,1.3);[-1,1].forEach(s=>add(new T.CylinderGeometry(2.4,2.4,.08,24),sol,0,2.1,s*3.4,g));add(new T.CylinderGeometry(.08,.08,2,6),sil,-.6,2.9,0,g);add(new T.BoxGeometry(.12,.12,3),dk,1.2,2.1,0,g);g.scale.setScalar(3.4);return g},
+ opportunity:()=>{const g=rover(0xd8c0a8,true);add(new T.CylinderGeometry(.9,.9,.1,20),M(0xd8d8d8,.6,.4),-1.2,2.7,0,g).rotation.x=.5;g.scale.setScalar(4.5);return g},
+ alsep:()=>{const g=new T.Group();add(new T.BoxGeometry(1.6,.9,1.2),gold,0,1,0,g);add(new T.CylinderGeometry(.06,.06,2.5,6),sil,0,2.7,0,g);add(new T.ConeGeometry(.7,.4,14),sil,0,4,0,g);[-2.6,2.6].forEach(x=>add(new T.BoxGeometry(.8,.5,.8),dk,x,.5,.4,g));add(new T.SphereGeometry(.6,12,8,0,6.283,0,1.57),sil,2.6,.75,-1.6,g);g.scale.setScalar(3.4);return g},
+ near:()=>{const g=new T.Group();add(new T.BoxGeometry(1.8,1.8,1.8),gold,0,1.2,0,g);[-1,1].forEach(s=>add(new T.BoxGeometry(3,.08,1.2),sol,s*2.4,1.2,0,g));add(new T.CylinderGeometry(.8,.8,.08,18),sil,0,2.3,0,g);g.scale.setScalar(4);g.rotation.z=.15;return g},
+ dawn:()=>{const g=new T.Group();add(new T.BoxGeometry(1.4,1.4,2),sil,0,0,0,g);[-1,1].forEach(s=>add(new T.BoxGeometry(9,.06,2.2),sol,s*5.5,0,0,g));add(new T.ConeGeometry(.5,1,10),dk,0,0,-1.5,g).rotation.x=-1.57;add(new T.CylinderGeometry(.9,.9,.08,18),sil,0,1.1,.3,g);g.scale.setScalar(2.2);return g},
+ pioneer:()=>{const g=new T.Group();add(new T.CylinderGeometry(.8,.8,.9,6),sil,0,0,0,g);add(new T.CylinderGeometry(2.7,2.7,.12,32),M(0xe8e8e8,.5,.5),0,.9,0,g);[-1,1].forEach(s=>{add(new T.CylinderGeometry(.1,.1,3.5,6),dk,s*2.2,-.5,0,g).rotation.z=1.57;add(new T.CylinderGeometry(.3,.3,.9,10),gold,s*4,-.5,0,g).rotation.z=1.57});g.scale.setScalar(3);return g},
+ kepler:()=>{const g=new T.Group();add(new T.CylinderGeometry(1.1,1.1,3.6,20),sil,0,0,0,g);add(new T.CircleGeometry(1,20),dk,0,1.82,0,g).rotation.x=-1.57;[-1,1].forEach(s=>add(new T.BoxGeometry(2.6,.08,1.6),sol,s*2.1,-.4,0,g));add(new T.CylinderGeometry(.5,.5,.08,14),sil,1.1,-1.8,0,g);g.scale.setScalar(3);return g},
+ insight:()=>{const g=new T.Group();add(new T.CylinderGeometry(2,2,.5,6),sil,0,1.7,0,g);legs(g,3,2.4,1.3);[-1,1].forEach(s=>add(new T.CylinderGeometry(1.9,1.9,.08,24),sol,s*3,2.3,0,g));add(new T.SphereGeometry(.9,16,8,0,6.283,0,1.57),sil,0,.1,3.2,g);g.scale.setScalar(3.4);return g}};
+const RM=r=>{const g=new T.Group(),m=M(r.col,.5,.45),w=M(0xeeeeee,.2,.7),A=(ge,mt,x,y,z)=>add(ge,mt,x,y,z,g);
+ switch(r.k){
+ case"sphere":A(new T.SphereGeometry(1,16,12),m,0,1,0);A(new T.CylinderGeometry(.1,.1,.6,6),dk,0,.1,0);break;
+ case"cam":A(new T.BoxGeometry(1.8,1.2,1.2),m,0,1,0);A(new T.CylinderGeometry(.5,.5,.9,14).rotateX(Math.PI/2),sil,0,1,1.0);A(new T.BoxGeometry(.5,.25,.5),dk,.4,1.75,0);break;
+ case"pack":A(new T.BoxGeometry(1.6,2.2,.9),m,0,1.2,0);[-.4,.4].forEach(x=>A(new T.CylinderGeometry(.3,.3,1.4,10),sil,x,1.2,.7));A(new T.BoxGeometry(1.2,.2,.3),gold,0,2.3,.1);break;
+ case"fig":A(new T.SphereGeometry(.4,10,8),m,0,2.3,0);A(new T.CylinderGeometry(.5,.4,1.2,8),m,0,1.4,0);[-1,1].forEach(s=>A(new T.CylinderGeometry(.12,.12,1,6),m,s*.35,.5,0));A(new T.BoxGeometry(1.4,.1,.8),dk,0,.05,0);break;
+ case"disc":A(new T.CylinderGeometry(1.6,1.6,.12,32),m,0,1,0).rotation.x=.5;A(new T.CylinderGeometry(.35,.35,.14,16),dk,0,1,0).rotation.x=.5;break;
+ case"shield":A(new T.ConeGeometry(2.2,.9,28),m,0,1,0);A(new T.CylinderGeometry(2.2,2.2,.12,28),M(0x2a1a14,.3,.9),0,.5,0);break;
+ case"chute":{const c=A(new T.CircleGeometry(2.4,20),new T.MeshStandardMaterial({color:r.col,side:T.DoubleSide,roughness:.9}),0,1.2,0);c.rotation.x=-1.2;const w2=A(new T.RingGeometry(.9,1.7,20),new T.MeshStandardMaterial({color:0xffffff,side:T.DoubleSide}),0,1.22,0);w2.rotation.x=-1.2;break}
+ case"crane":A(new T.BoxGeometry(2,.8,2),m,0,1.6,0);legs(g,4,1.3,1.4);[-.7,.7].forEach(x=>A(new T.CylinderGeometry(.3,.5,.8,8),dk,x,.9,0));break;
+ case"fabric":{const f=A(new T.BoxGeometry(2.2,.05,1.5),new T.MeshStandardMaterial({color:r.col,roughness:1}),0,1,0);f.rotation.set(.15,.4,.1);A(new T.BoxGeometry(2.2,.07,.08),M(0x8a6a3a,0,1),0,1.06,0).rotation.set(.15,.4,.1);break}
+ case"tool":A(new T.CylinderGeometry(.3,.3,2,10),sil,0,1.6,0);A(new T.CylinderGeometry(1,1,.2,18),m,0,.7,0);A(new T.BoxGeometry(.5,.5,.5),dk,0,2.7,0);break;
+ case"mole":A(new T.CylinderGeometry(.25,.25,3.6,10),m,0,1.5,0).rotation.z=1.3;A(new T.ConeGeometry(.25,.6,10),dk,1.7,.6,0).rotation.z=-1.9;A(new T.CylinderGeometry(.05,.05,3,6),dk,-2,.5,0).rotation.z=1.5;break;
+ case"shell":A(new T.ConeGeometry(1.8,1.6,20,1,true),new T.MeshStandardMaterial({color:r.col,side:T.DoubleSide,roughness:.6}),0,1,0);break;
+ case"arm":A(new T.CylinderGeometry(.18,.18,2.4,8),m,-.7,1.2,0).rotation.z=.6;A(new T.CylinderGeometry(.18,.18,2,8),m,.9,1.9,0).rotation.z=-.9;A(new T.SphereGeometry(.5,10,8,0,6.283,0,1.57),sil,1.9,1.1,0);break;
+ case"dome":A(new T.SphereGeometry(1.6,18,10,0,6.283,0,1.57),m,0,.6,0);A(new T.CylinderGeometry(1.8,1.8,.15,20),dk,0,.55,0);break;
+ case"plaque":A(new T.BoxGeometry(3,1.7,.1),m,0,1.3,0);[0,1,2].forEach(i=>A(new T.BoxGeometry(2.2-i*.4,.08,.12),dk,0,1.8-i*.35,0));break;
+ case"rtg":A(new T.CylinderGeometry(.6,.6,2.4,12),m,0,1.4,0).rotation.z=1.57;[-.8,-.3,.2,.7].forEach(x=>A(new T.CylinderGeometry(.85,.85,.1,12),sil,x,1.4,0).rotation.z=1.57);break;
+ case"ion":A(new T.CylinderGeometry(.8,.8,1.2,16),new T.MeshStandardMaterial({color:r.col,emissive:0x2a8fb8,emissiveIntensity:.8}),0,1.4,0);A(new T.ConeGeometry(1.1,1,16,1,true),sil,0,.5,0).rotation.x=Math.PI;break;
+ case"phot":A(new T.CylinderGeometry(1.4,1.4,.8,20),m,0,1,0);A(new T.CylinderGeometry(1,1,.1,20),dk,0,1.45,0);[0,1,2,3].forEach(i=>A(new T.BoxGeometry(.3,.3,.1),sol,-.9+i*.6,1.52,0));break;
+ default:A(new T.BoxGeometry(1.6,1,1.2),m,0,1,0);A(new T.CylinderGeometry(.4,.4,1,10).rotateZ(Math.PI/2),sil,1.2,1,0);}
+ g.scale.setScalar(r.sc||3);return g};
+function roverPro(){const g=new T.Group(),wh=[],wht=M(0xe9ecf1,.4,.45),gd=M(0xc9992f,.9,.3),blk=M(0x15181e,.5,.6),al=M(0x9aa1ad,.9,.3),tire=M(0x1d2026,.4,.85),lens=new T.MeshStandardMaterial({color:0x7fd4ff,emissive:0x2a8fb8,emissiveIntensity:.9,metalness:.8,roughness:.1});
+ add(new T.BoxGeometry(3.3,.9,2),wht,0,1.75,0,g);add(new T.BoxGeometry(1.5,.55,2.06),gd,-.9,1.55,0,g);add(new T.BoxGeometry(3.4,.1,2.1),blk,0,2.25,0,g);
+ add(new T.CylinderGeometry(.38,.38,1.2,14).rotateZ(Math.PI/2),blk,-2.15,1.85,0,g);[-2.6,-2.35,-2.1,-1.85,-1.6].forEach(x=>add(new T.CylinderGeometry(.58,.58,.05,14).rotateZ(Math.PI/2),al,x,1.85,0,g));
+ add(new T.CylinderGeometry(.07,.07,1.8,8),al,.9,3.1,.55,g);add(new T.BoxGeometry(.5,.42,1),wht,.9,4.1,.55,g);[-.3,.3].forEach(z=>add(new T.CylinderGeometry(.13,.13,.2,10).rotateZ(Math.PI/2),lens,1.2,4.1,.55+z,g));
+ add(new T.CylinderGeometry(.55,.55,.06,18),al,-.3,2.9,-.7,g).rotation.z=.9;add(new T.CylinderGeometry(.05,.05,.7,6),al,-.3,2.55,-.7,g);
+ add(new T.BoxGeometry(1.3,.14,.14),al,2.2,1.8,-.5,g);add(new T.BoxGeometry(.14,.7,.14),al,2.85,1.5,-.5,g);add(new T.CylinderGeometry(.3,.3,.5,12),blk,2.85,1.1,-.5,g);
+ [-1,1].forEach(s=>{add(new T.BoxGeometry(3.2,.14,.14),al,0,1.1,s*1.2,g);[-1.4,0,1.4].forEach(x=>{add(new T.CylinderGeometry(.06,.06,.6,6),al,x,.8,s*1.28,g);const w=add(new T.CylinderGeometry(.55,.55,.5,22).rotateX(Math.PI/2),tire,x,.55,s*1.6,g);wh.push(w);add(new T.CylinderGeometry(.3,.3,.52,12).rotateX(Math.PI/2),al,0,0,0,w);for(let i=0;i<14;i++){const a=i/14*6.283,c=add(new T.BoxGeometry(.14,.14,.5),al,Math.cos(a)*.56,Math.sin(a)*.56,0,w);c.rotation.z=a}})});
+ g.userData.wheels=wh;return g}
+const player=roverPro();player.scale.setScalar(4);sc.add(player);
+const sm=Array.from({length:NS},()=>{const m=new T.Mesh(new T.OctahedronGeometry(3.2),new T.MeshStandardMaterial({color:0x6ce8ff,emissive:0x2bb7c9,emissiveIntensity:1.2,roughness:.2,metalness:.2}));m.scale.y=1.5;m.castShadow=true;sc.add(m);return m});
+const arrow=new T.Mesh(new T.ConeGeometry(2.5,8,8).rotateZ(-Math.PI/2),new T.MeshBasicMaterial({color:0xffcf6b,fog:false}));arrow.visible=false;sc.add(arrow);
+const prog=new T.Mesh(new T.RingGeometry(76,84,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x6ce8ff,side:T.DoubleSide}));prog.visible=false;sc.add(prog);
+const pr=new T.Mesh(new T.RingGeometry(1,1.04,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x6ce8ff,side:T.DoubleSide,transparent:true,fog:false}));pr.visible=false;sc.add(pr);
+const DN=700,dp=new Float32Array(DN*3),off=new Float32Array(DN);for(let i=0;i<DN;i++){dp[i*3]=(Math.random()-.5)*260;off[i]=Math.random()*70;dp[i*3+2]=(Math.random()-.5)*260}
+const dg=new T.BufferGeometry();dg.setAttribute("position",new T.BufferAttribute(dp,3));
+const dm=new T.PointsMaterial({color:0xeab98c,size:1.8,transparent:true,opacity:0,depthWrite:false}),dust3=new T.Points(dg,dm);dust3.frustumCulled=false;sc.add(dust3);
+const home=new T.Mesh(new T.ConeGeometry(2.5,8,8).rotateZ(-Math.PI/2),new T.MeshBasicMaterial({color:0x5df0b0,fog:false}));home.visible=false;sc.add(home);
+let shipRamp=null,shipB=null,shipL=null,ramp0=.3,shipTx=null;
+function animShip(tm,d){if(!shipRamp)return;let a=ramp0;if(st==="land"){const u=Math.min(1,(LT-landT)/1.8);a=-1.5708+(ramp0+1.5708)*u*u*(3-2*u)}else if(st!=="play")a=-1.5708;shipRamp.rotation.x+=(a-shipRamp.rotation.x)*Math.min(1,d*8);if(shipB)shipB.material.emissiveIntensity=.3+1.2*Math.abs(Math.sin(tm*2.2));if(shipL)shipL.intensity=.5+storm*2}
+function buildShip(){const g=new T.Group(),V=(x,y,z)=>new T.Vector3(x,y,z),y0=hgt(SHIP.x,SHIP.y),A=(ge,mt,x,y,z,p)=>add(ge,mt,x,y,z,p||g);
+ if(!shipTx){const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");x.fillStyle="#e4e8ef";x.fillRect(0,0,256,256);x.strokeStyle="rgba(60,70,90,.55)";x.lineWidth=2;for(let i=0;i<=256;i+=64){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.moveTo(0,i);x.lineTo(256,i);x.stroke()}x.fillStyle="rgba(70,80,100,.6)";for(let i=0;i<256;i+=16)for(let j=0;j<256;j+=64){x.fillRect(i+6,j+3,2,2);x.fillRect(i+6,j+59,2,2)}x.fillStyle="#2b5fb8";x.fillRect(0,100,256,16);x.fillStyle="#c9312b";x.fillRect(0,120,256,6);for(let i=0;i<60;i++){x.fillStyle="rgba(90,80,70,"+Math.random()*.12+")";x.fillRect(Math.random()*256,Math.random()*256,20+Math.random()*40,3)}shipTx=new T.CanvasTexture(c);shipTx.wrapS=shipTx.wrapT=T.RepeatWrapping;shipTx.repeat.set(3,1)}
+ const hull=new T.MeshStandardMaterial({map:shipTx,metalness:.5,roughness:.45}),foil=M(0xd2a22c,.95,.28),dkm=M(0x232833,.5,.6),pan=new T.MeshStandardMaterial({color:0x14264f,metalness:.7,roughness:.3,emissive:0x050c20}),glow=new T.MeshStandardMaterial({color:0xffe9a8,emissive:0xffcf6b,emissiveIntensity:1.3});
+ const strut=(p1,p2,r,mt)=>{const d=new T.Vector3().subVectors(p2,p1),m=A(new T.CylinderGeometry(r,r,d.length(),8),mt,(p1.x+p2.x)/2,(p1.y+p2.y)/2,(p1.z+p2.z)/2);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize())};
+ A(new T.BoxGeometry(16,1,26),dkm,0,8,2);for(let i=0;i<8;i++)A(new T.BoxGeometry(2,.15,.9),i%2?dkm:M(0xf2c230,.2,.6),-7+i*2,8.55,14.4);
+ A(new T.CylinderGeometry(6.2,6.4,3,12),foil,0,10,-4);A(new T.CylinderGeometry(6,6.2,9,12),hull,0,16,-4);A(new T.CylinderGeometry(2.4,6,4,12),hull,0,22.5,-4);A(new T.CylinderGeometry(.15,.15,5,6),dkm,0,27,-4);
+ A(new T.CylinderGeometry(1.6,.3,.5,16),M(0xdddddd,.6,.4),1.6,26,-4).rotation.z=-.7;
+ [[-2.6,1.45,-.43],[0,2.05,0],[2.6,1.45,.43]].forEach(([x,z,r])=>{A(new T.BoxGeometry(1.9,1.7,.3),glow,x,17,z).rotation.y=r});
+ [-1,1].forEach(s=>{A(new T.SphereGeometry(2.5,14,10),foil,s*7,11.3,-3);A(new T.CylinderGeometry(.3,.3,2.6,6),dkm,s*7,9.3,-3);A(new T.BoxGeometry(10,.15,5.5),pan,s*12.5,17.5,-6);A(new T.CylinderGeometry(.2,.2,6,6).rotateZ(Math.PI/2),dkm,s*8,17.5,-6);A(new T.BoxGeometry(1.2,.6,.6),glow,s*7.5,9,14.5)});
+ A(new T.CylinderGeometry(2.8,1.3,3.4,14),dkm,0,6.1,-3);A(new T.CylinderGeometry(1.5,1.9,.5,14),M(0x555a66,.8,.4),0,4.3,-3);
+ [[-1,-9,-14],[1,-9,-14],[-1,12,19],[1,12,19]].forEach(([sx,tz,fz])=>{const fy=(hgt(SHIP.x+sx*13*1.3,SHIP.y+fz*1.3)-y0)/1.3+.35;strut(V(sx*7,8,tz),V(sx*13,fy,fz),.45,sil);A(new T.CylinderGeometry(2.1,2.4,.5,14),dkm,sx*13,fy,fz)});
+ const run=zE-zH,drop=hgt(SHIP.x,SHIP.y)+11.05-hgt(SHIP.x,zE);ramp0=Math.atan2(drop,run);
+ shipRamp=new T.Group();shipRamp.position.set(0,8.5,15);shipRamp.rotation.x=-1.5708;g.add(shipRamp);const rg=new T.Group();rg.scale.z=Math.hypot(run,drop)/33.8;shipRamp.add(rg);
+ A(new T.BoxGeometry(9,.5,26),M(0x3a3f4b,.6,.55),0,-.25,13,rg);[-4.3,4.3].forEach(x=>A(new T.BoxGeometry(.5,.9,26),sil,x,.2,13,rg));for(let i=1;i<9;i++)A(new T.BoxGeometry(8.2,.12,.5),M(0x888d99,.8,.4),0,.05,i*2.8,rg);
+ shipB=A(new T.SphereGeometry(.7,10,8),new T.MeshStandardMaterial({color:0xff4040,emissive:0xff2020,emissiveIntensity:1}),0,29.6,-4);
+ g.position.set(SHIP.x,y0,SHIP.y);g.scale.setScalar(1.3);grp.add(g);
+ shipL=new T.PointLight(0xffe2b0,.6,330,1);shipL.position.set(SHIP.x,y0+34,SHIP.y+30);grp.add(shipL);
+ const b=new T.Mesh(new T.CylinderGeometry(2.4,2.4,160,16,1,true),new T.MeshBasicMaterial({color:0x5df0b0,transparent:true,opacity:.22,blending:T.AdditiveBlending,depthWrite:false,fog:false}));b.position.set(SHIP.x,y0+80,SHIP.y);grp.add(b);
+ const r=new T.Mesh(new T.RingGeometry(76,80,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x5df0b0,side:T.DoubleSide,transparent:true,opacity:.6}));r.position.set(SHIP.x,y0+.8,SHIP.y);grp.add(r)}
+const ptex=k=>{const c=document.createElement("canvas");c.width=256;c.height=128;const x=c.getContext("2d"),R=Math.random;
+ if(k==="moon"){x.fillStyle="#1f5fb8";x.fillRect(0,0,256,128);for(let i=0;i<70;i++){x.fillStyle="rgba(255,255,255,"+(.12+R()*.3)+")";x.beginPath();x.ellipse(R()*256,R()*128,10+R()*30,3+R()*7,0,0,6.3);x.fill()}for(let i=0;i<8;i++){x.fillStyle="rgba(80,130,60,.6)";x.beginPath();x.ellipse(R()*256,20+R()*90,8+R()*18,6+R()*10,0,0,6.3);x.fill()}}
+ else if(k==="mars"){x.fillStyle="#7a746c";x.fillRect(0,0,256,128);for(let i=0;i<60;i++){x.fillStyle="rgba(30,28,26,"+(.15+R()*.3)+")";x.beginPath();x.arc(R()*256,R()*128,2+R()*9,0,6.3);x.fill()}}
+ else{for(let y=0;y<128;y+=6){x.fillStyle="hsl("+(25+R()*20)+","+(40+R()*30)+"%,"+(45+R()*30)+"%)";x.fillRect(0,y,256,7)}}
+ return new T.CanvasTexture(c)};
+const pb=new T.Mesh(new T.SphereGeometry(1,32,20),new T.MeshBasicMaterial({map:ptex("moon"),fog:false,depthWrite:false}));sc.add(pb);
+const stx=(()=>{const c=document.createElement("canvas");c.width=16;c.height=256;const x=c.getContext("2d");for(let y=0;y<256;y+=6+Math.random()*20){x.fillStyle="hsl("+(10+Math.random()*18)+","+(45+Math.random()*20)+"%,"+(26+Math.random()*24)+"%)";x.fillRect(0,y,16,30)}const t=new T.CanvasTexture(c);t.wrapS=T.RepeatWrapping;t.repeat.set(3,1);return t})();
+const BN=16,bt=new T.InstancedMesh(new T.CylinderGeometry(.75,1,1,12,4),new T.MeshStandardMaterial({map:stx,roughness:1,flatShading:true}),BN);bt.castShadow=bt.receiveShadow=true;bt.frustumCulled=false;sc.add(bt);
+const TN=360,tk=new T.InstancedMesh(new T.PlaneGeometry(1.3,3.4).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x1a0f0a,transparent:true,opacity:.4,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}),TN);tk.frustumCulled=false;sc.add(tk);let tkI=0,tkx=1e9,tkz=1e9;const tkO=new T.Object3D();
+const clrTk=()=>{tkO.scale.set(0,0,0);tkO.updateMatrix();for(let i=0;i<TN;i++)tk.setMatrixAt(i,tkO.matrix);tk.instanceMatrix.needsUpdate=true;tkx=tkz=1e9};
+const cm=Array.from({length:10},()=>{const m=new T.Mesh(new T.CylinderGeometry(3,3,.7,20).rotateX(Math.PI/2),new T.MeshStandardMaterial({color:0xffc83d,metalness:1,roughness:.25,emissive:0x6b4a00,emissiveIntensity:.6}));m.castShadow=true;sc.add(m);return m});
+let grp=null,cur=null;
+function paint(){const nn=tg.attributes.normal;for(let i=0;i<pp.count;i++){const x=pp.getX(i),z=pp.getZ(i),h=hs[i],n=.5+.5*Math.sin(x*.09)*Math.sin(z*.083)+(Math.random()-.5)*.12,st=Math.min(1,Math.max(0,(1-nn.getY(i)-.06)*3.2)),hh=Math.min(1,Math.max(0,(h+20)/220));c.setHSL(th.h+(th.dust?.01*Math.sin(x*.002):0),th.s*(1-.45*st),(th.l+.1*hh+.06*n)*(1-.3*st)+.04*st);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}tg.attributes.color.needsUpdate=true}
+function buildWorld(){for(let i=0;i<pp.count;i++){hs[i]=hgt(pp.getX(i),pp.getZ(i));pp.setY(i,hs[i])}pp.needsUpdate=true;tg.computeVertexNormals();paint();obst=[];
+ for(let i=0;i<NR;i++){const x=Math.random()*W*1.4-W*.2,z=Math.random()*H*1.4-H*.2;let s=.7+Math.pow(Math.random(),3)*12;
+  if(s>=7&&x>0&&x<W&&z>0&&z<H){if(ALLP.every(p=>Math.hypot(p[0]-x,p[1]-z)>170)&&slopeAt(x,z)[2]<.4)obst.push({x,z,r:s*1.25});else s=3+Math.random()*3}
+  o.position.set(x,hgt(x,z)+s*.3,z);o.scale.set(s*1.3,s*.85,s);o.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);o.updateMatrix();rm.setMatrixAt(i,o.matrix)}
+ rm.instanceMatrix.needsUpdate=true;
+ for(let i=0;i<BN;i++){let x,z,r=0,ok=0;for(let n=0;n<40&&!ok;n++){x=250+Math.random()*(W-500);z=250+Math.random()*(H-500);r=35+Math.random()*45;ok=ALLP.every(p=>Math.hypot(p[0]-x,p[1]-z)>r+170)&&Math.hypot(SHIP.x-x,SHIP.y-z)>r+200&&obst.every(q=>Math.hypot(q.x-x,q.z-z)>r+q.r)}
+  if(!ok||!th.dust){o.scale.set(0,0,0)}else{const h=45+Math.random()*80;o.position.set(x,hgt(x,z)+h/2-4,z);o.scale.set(r,h,r);o.rotation.set(0,Math.random()*6,0);obst.push({x,z,r:r*.95})}o.updateMatrix();bt.setMatrixAt(i,o.matrix)}
+ bt.instanceMatrix.needsUpdate=true}
+window.world3D=function(){const L=LV[lv];th=TH[L.th];
+ if(cur===L.th)return;cur=L.th;buildWorld();rmat0.color.setHex(th.rock);hemi.color.setHex(th.hm[0]);hemi.groundColor.setHex(th.hm[1]);hemi.intensity=th.hm[2];fc0.setHex(th.f0);fc1.setHex(th.f1);sk0[0].setHex(th.s0[0]);sk0[1].setHex(th.s0[1]);sk1[0].setHex(th.s1[0]);sk1[1].setHex(th.s1[1]);stars.visible=!th.dust;pb.material.map=ptex(L.th);pb.material.needsUpdate=true;pb.scale.setScalar({moon:420,mars:170,ast:760}[L.th]);bt.visible=!!th.dust};
+window.setup3D=function(){const L=LV[lv];th=TH[L.th];
+ if(grp)sc.remove(grp);grp=new T.Group();sc.add(grp);
+ targets.forEach(t=>{const m=(MODELS[t.s.id]||MODELS.sojourner)(),y=hgt(t.x,t.y);m.position.set(t.x,y,t.y);m.rotation.y=Math.random()*6;grp.add(m);t.m=m;t.by=y;if(t.holo){m.position.y=y+16;m.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.emissive=new T.Color(0x1a6e80);o.material.transparent=true;o.material.opacity=.85}})}
+  t.beam=new T.Mesh(new T.CylinderGeometry(2.2,2.2,160,16,1,true),new T.MeshBasicMaterial({color:0xffcf6b,transparent:true,opacity:.22,blending:T.AdditiveBlending,depthWrite:false,fog:false}));grp.add(t.beam);
+  t.ring=new T.Mesh(new T.RingGeometry(86,90,64).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xffcf6b,side:T.DoubleSide,transparent:true,opacity:.8}));t.ring.position.set(t.x,y+.8,t.y);grp.add(t.ring);t.beam.position.set(t.x,y+80,t.y)});
+ relics.forEach(r=>{r.m=RM(r);grp.add(r.m);r.beam=new T.Mesh(new T.CylinderGeometry(1.4,1.4,90,12,1,true),new T.MeshBasicMaterial({color:0xff7ad9,transparent:true,opacity:.35,blending:T.AdditiveBlending,depthWrite:false,fog:false}));grp.add(r.beam);r.ring=new T.Mesh(new T.RingGeometry(15,17,32).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xff7ad9,side:T.DoubleSide,transparent:true,opacity:.7}));r.ring.position.set(r.x,hgt(r.x,r.y)+1,r.y);grp.add(r.ring)});
+ pads.forEach(p=>{p.m=new T.Group();p.m.add(new T.Mesh(new T.RingGeometry(18,22,40).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x5df0b0,side:T.DoubleSide})),new T.Mesh(new T.CircleGeometry(18,40).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x5df0b0,transparent:true,opacity:.25})));p.m.position.set(p.x,hgt(p.x,p.y)+1,p.y);grp.add(p.m)});
+ devs.forEach(d=>{d.m=th.dust?new T.Mesh(new T.ConeGeometry(10,38,14,1,true).rotateX(Math.PI),new T.MeshBasicMaterial({color:0xd9a77a,transparent:true,opacity:.4,side:T.DoubleSide,depthWrite:false})):new T.Mesh(new T.DodecahedronGeometry(7,0),M(0x6b6b72,.1,1));d.m.castShadow=true;grp.add(d.m)});buildShip();clrTk()};
+const q1=new T.Quaternion(),q2=new T.Quaternion(),UP=new T.Vector3(0,1,0),nv=new T.Vector3(),qp=new T.Quaternion(),ZA=new T.Vector3(0,0,1);let cx3=0,cy3=0,cz3=0,init=false,lastD=0,progAt=-1;
+const wrap=(v,c)=>c+((v-c+130)%260+260)%260-130;
+draw=function(){
+ const tm=performance.now()/1000,d=Math.min(.05,tm-lastD||.016);lastD=tm;const x=rv.x,z=rv.y,y=hgt(x,z);
+ const dx=(hgt(x+2,z)-hgt(x-2,z))/4,dz=(hgt(x,z+2)-hgt(x,z-2))/4;nv.set(-dx,1,-dz).normalize();q1.setFromUnitVectors(UP,nv);q2.setFromAxisAngle(UP,-rv.a);
+ const dk_=hgt(SHIP.x,SHIP.y)+11.05,onDeck=(st==="ready"||st==="night"||st==="land")&&z<zE&&Math.abs(x-SHIP.x)<6;
+ if(onDeck){const f=Math.min(1,Math.max(0,(z-zH)/(zE-zH))),ge=hgt(SHIP.x,zE),th_=z<=zH?0:Math.atan2(dk_-ge,zE-zH)*Math.min(1,(z-zH)/6);qp.setFromAxisAngle(ZA,-th_);player.quaternion.copy(q2).multiply(qp);player.position.set(x,z<=zH?dk_:dk_+(ge-dk_)*f,z)}
+ else{player.quaternion.copy(q1).multiply(q2);player.position.set(x,y,z)}
+ const spd=Math.hypot(rv.vx,rv.vy)/2.2;player.userData.wheels.forEach(w=>w.rotation.z+=spd*d);
+ const cp=Math.cos(pit),tx=x+Math.sin(yaw)*dist*cp,tz=z+Math.cos(yaw)*dist*cp,ty=y+6+Math.sin(pit)*dist;if(!init||Math.hypot(cx3-tx,cz3-tz)>400){cx3=tx;cy3=ty;cz3=tz;init=true}
+ const f=Math.min(1,d*8);cx3+=(tx-cx3)*f;cy3+=(ty-cy3)*f;cz3+=(tz-cz3)*f;cam3.position.set(cx3,Math.max(cy3,hgt(cx3,cz3)+6),cz3);cam3.lookAt(x,y+6,z);sky.position.copy(cam3.position);stars.position.copy(cam3.position);pb.position.set(cam3.position.x+Math.cos(2.2)*3500,cam3.position.y+1500,cam3.position.z+Math.sin(2.2)*3500);
+ const el=th.dust?.62-.14*storm:.7-.58*storm;sun.target.position.set(x,y,z);sun.position.set(x+Math.cos(.9)*300*Math.cos(el),y+Math.sin(el)*300,z+Math.sin(.9)*300*Math.cos(el));sun.intensity=th.sun*(1-(th.dust?.48:.75)*storm);hemi.intensity=th.hm[2]*(1-(th.dust?.2:.7)*storm);glare.position.set(cx3+Math.cos(.9)*Math.cos(el)*3600,cy3+Math.sin(el)*3600,cz3+Math.sin(.9)*Math.cos(el)*3600);glare.material.opacity=(1-storm*.85)*(th.dust?.6:.9);
+ sc.fog.density=th.fd+(th.dust?.0042:.0004)*storm;sc.fog.color.copy(fc0).lerp(fc1,storm);skyU.bot.value.copy(sk0[0]).lerp(sk1[0],storm);skyU.top.value.copy(sk0[1]).lerp(sk1[1],storm);
+ targets.forEach(t=>{if(!t.beam)return;if(t.holo&&t.m){t.m.position.y=t.by+16+Math.sin(tm*1.5)*2;t.m.rotation.y=tm*.4}t.beam.material.color.setHex(t.done?0x5df0b0:0xffcf6b);t.beam.scale.y=t.done?.35:1;t.beam.position.y=hgt(t.x,t.y)+(t.done?28:80);t.ring.material.color.setHex(t.done?0x5df0b0:0xffcf6b);t.ring.material.opacity=t.done?.5:.5+.3*Math.sin(tm*3)});
+ pads.forEach(p=>{if(p.m)p.m.rotation.y=tm});
+ relics.forEach(r=>{if(!r.m)return;r.m.visible=r.beam.visible=r.ring.visible=r.on;if(r.on){const y0=hgt(r.x,r.y);r.m.position.set(r.x,y0+3.5+Math.sin(tm*2+r.x)*1.2,r.y);r.m.rotation.y=tm*.8;r.beam.position.set(r.x,y0+45,r.y);r.ring.material.opacity=.45+.3*Math.sin(tm*3+r.y)}});
+ devs.forEach(v=>{if(!v.m)return;v.m.position.set(v.x,hgt(v.x,v.y)+(th.dust?19:6),v.y);if(th.dust)v.m.rotation.y=tm*5;else v.m.rotation.set(tm*2,0,tm*1.3)});
+ const n=nearest();
+ if(near&&scan>0){if(Math.abs(scan-progAt)>.03){prog.geometry.dispose();prog.geometry=new T.RingGeometry(76,84,64,1,0,Math.max(.02,scan*6.283)).rotateX(-Math.PI/2);progAt=scan}prog.position.set(near.x,hgt(near.x,near.y)+1.2,near.y);prog.visible=true}else{prog.visible=false;progAt=-1}
+ if(ping>0&&n){const s=40+((tm*70)%70);pr.scale.set(s,1,s);pr.position.set(n.t.x,hgt(n.t.x,n.t.y)+1.5,n.t.y);pr.material.opacity=Math.min(1,ping);pr.visible=true}else pr.visible=false;
+ if(hint>=2&&n&&st==="play"){arrow.visible=true;arrow.position.set(x,y+26+Math.sin(tm*4),z);arrow.rotation.y=-Math.atan2(n.t.y-z,n.t.x-x)}else arrow.visible=false;
+ home.visible=st==="play"&&(storm>.55||batt<25)&&Math.hypot(SHIP.x-x,SHIP.y-z)>90;if(home.visible){home.position.set(x,y+32+Math.sin(tm*4),z);home.rotation.y=-Math.atan2(SHIP.y-z,SHIP.x-x)}
+ cm.forEach((m,i)=>{const c=cns[i];m.visible=!!(c&&c.on);if(m.visible){m.position.set(c.x,hgt(c.x,c.y)+6+Math.sin(tm*3+i),c.y);m.rotation.y=tm*2.5}});
+ animShip(tm,d);if(st==="play"&&Math.hypot(x-tkx,z-tkz)>5&&Math.hypot(rv.vx,rv.vy)>25){tkx=x;tkz=z;[-1,1].forEach(sd=>{tkO.position.set(x-Math.sin(rv.a)*sd*2.7,hgt(x,z)+.4,z+Math.cos(rv.a)*sd*2.7);tkO.rotation.set(0,Math.PI/2-rv.a,0);tkO.scale.set(1,1,1);tkO.updateMatrix();tk.setMatrixAt(tkI,tkO.matrix);tkI=(tkI+1)%TN});tk.instanceMatrix.needsUpdate=true}
+ sm.forEach((m,i)=>{const s=samples[i];m.visible=!!(s&&s.on);if(m.visible){m.position.set(s.x,hgt(s.x,s.y)+5+Math.sin(tm*3+i),s.y);m.rotation.y=tm*1.5}});
+ for(let i=0;i<DN;i++){const j=i*3;dp[j]=wrap(dp[j]-(30+storm*160)*d,x);dp[j+2]=wrap(dp[j+2]+8*d,z);dp[j+1]=y+off[i]}
+ dg.attributes.position.needsUpdate=true;dm.opacity=th.dust?Math.min(.85,storm*1.1):0;
+ R3.render(sc,cam3)}
+}
+let last=0;(function frame(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;if(st==="land"&&!paused){landT-=dt;const el=LT-landT;rv.x=SHIP.x;rv.a=Math.PI/2;if(el>2){const u=Math.min(1,(el-2)/4.5);rv.y=zS+(zF-zS)*u*u*(3-2*u);rv.vy=26}else{rv.y=zS;rv.vy=0}if(landT<=0){rv.y=zF;rv.vy=0;st="play";say("Rover ready. Scan the objects, but keep an eye on the clock and the battery!")}}if(st==="play"&&!paused)step(dt);if(rv)draw();requestAnimationFrame(frame)})(0);
+addEventListener("keydown",e=>{if(GX.rebinding)return;const a=GX.act(e.code);
+ if(GX.isOpen()){if(a==="set"||e.code==="Escape")GX.close();return}
+ if(e.code==="Escape"){wrap.classList.remove("pfs");setTimeout(()=>window.gameResize&&gameResize(),100);return}
+ if(!a||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(a==="fs"){fs();return}if(a==="set"){GX.open();return}if(a==="hint"){$("#hint").click();return}
+ if(st==="play")e.preventDefault();k[a]=1});
+addEventListener("keyup",e=>{const a=GX.act(e.code);if(a&&a in k)k[a]=0});
+document.querySelectorAll("[data-k]").forEach(b=>{const m=b.dataset.k;b.addEventListener("pointerdown",e=>{e.preventDefault();k[m]=1});["pointerup","pointerleave","pointercancel"].forEach(v=>b.addEventListener(v,()=>k[m]=0))});
+$("#hint").addEventListener("click",()=>{if(st!=="play")return;hint=Math.min(3,hint+1);say(HINTS[hint-1]);GX.audio.hint();if(hint===3)ping=4});
+const wrap=document.querySelector(".game-wrap");
+function fs(){const on=document.fullscreenElement||wrap.classList.contains("pfs");if(on){if(document.fullscreenElement)document.exitFullscreen();else wrap.classList.remove("pfs")}else if(wrap.requestFullscreen)wrap.requestFullscreen().catch(()=>wrap.classList.add("pfs"));else wrap.classList.add("pfs");setTimeout(()=>window.gameResize&&gameResize(),200)}
+$("#fs").onclick=fs;$("#fs2").onclick=fs;$("#gs-btn").onclick=()=>{GX.audio.init();GX.open()};$("#gs2").onclick=()=>{GX.audio.init();GX.open()};
+GX.pauseHook=p=>{paused=p;if(p){Object.keys(k).forEach(x=>k[x]=0);GX.audio.engine(0);GX.audio.wind(0)}};GX.onReset=()=>{if(st!=="play")showIntro(lv);else{st="ready";showIntro(lv)}};
+let drag=false,lx=0,ly=0;
+cv.addEventListener("pointerdown",e=>{drag=true;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing"});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006*GX.S.sens;pit=Math.min(1.2,Math.max(.22,pit+(e.clientY-ly)*.004*GX.S.sens*(GX.S.inv?-1:1)));lx=e.clientX;ly=e.clientY});
+["pointerup","pointercancel"].forEach(v=>cv.addEventListener(v,()=>{drag=false;cv.style.cursor="grab"}));
+cv.addEventListener("wheel",e=>{e.preventDefault();dist=Math.min(220,Math.max(60,dist+e.deltaY*.1))},{passive:false});
+function showIntro(i){loadLevel(i);st="ready";sheltered=0;MAXD=3+U.day;$("#ov-t").textContent=LV[i].n;$("#ov-p").textContent=LV[i].story;$("#ov-r").hidden=true;$("#ov-h").hidden=false;$("#go").hidden=false;$("#go").textContent="Start mission";$("#next").hidden=true;$("#ov-a").hidden=true;$("#ov").hidden=false;say(LV[i].story)}
+const begin=()=>{GX.audio.init();GX.audio.music(LV[lv].th);reset();day=1;MAXD=3+U.day;sheltered=0;dockSaid=0;lg("start",LV[lv].n);lg("land");landT=LT;st="land";$("#ov").hidden=true;say("Deploying the rover from the ship. Stay close to the ship: it is your charger and your shelter.")};
+$("#go").addEventListener("click",()=>sheltered?morning():begin());$("#next").addEventListener("click",()=>showIntro(lv+1));
+$("#lvs").innerHTML=LV.map((l,i)=>`<button class="button ghost small" data-lv="${i}">${l.n}</button>`).join("");
+document.querySelectorAll("[data-lv]").forEach(b=>b.addEventListener("click",()=>showIntro(+b.dataset.lv)));
+showIntro(0);if(!window.THREE){$("#ov-p").textContent="The 3D engine needs an internet connection. Please connect and reload.";$("#go").hidden=true;$("#lvs").hidden=true;$("#ov-h").hidden=true}
+
+})();
+</script></body></html>
